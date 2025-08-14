@@ -1,9 +1,14 @@
-# Sora (空) - Base Bot WhatsApp Golang
+<div align="center">
+    <h1>Sora (空) - Base Bot WhatsApp Golang</h1>
+    <img
+        src="https://i.pinimg.com/originals/3b/a1/b1/3ba1b1bec48437f074074ce70e95a06f.jpg"
+        alt="Sora"
+        style="display:block; margin:-100px 20px; width:65%;"
+    />
+</div>
 
-[![Go Version](https://img.shields.io/badge/Go-1.21%2B-blue.svg)](https://go.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Sora (空)** adalah sebuah **Base Bot WhatsApp** yang dibangun menggunakan **Go (Golang)** dan library **Whatsmeow**.
+# **Sora (空)** adalah sebuah **Base Bot WhatsApp** yang dibangun menggunakan **Go (Golang)** dan library **Whatsmeow**.
 
 Proyek ini dirancang sebagai "kerangka dasar" yang simpel dan super ringan. Tujuannya adalah menyediakan fondasi yang bersih dan mudah dipahami, sehingga kamu bisa langsung fokus mengembangkan fitur-fitur unikmu sendiri tanpa harus pusing dengan kerumitan setup awal.
 
@@ -84,7 +89,7 @@ func init() {
 ## 🙏 Thanks To
 
 * **Ginko/Soursop**: Atas inspirasi dan arahan di awal-awal belajar `whatsmeow`. Cek profilnya di **[GitHub/ginkohub](https://github.com/ginkohub)**.
-* **blog.eikarna.my.id**: Atas bimbingan di fase awal pengembangan, terutama soal praktik terbaik dalam menggunakan package.
+* **blog.eikarna.my.id**: Atas arahan pas awal belajar bikin bot pake whatsmeow.
 
 ### Check Out These Bots!
 Jika kamu mencari referensi atau bot lain, pastikan untuk melihat proyek-proyek ini:
