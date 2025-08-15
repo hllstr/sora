@@ -27,7 +27,7 @@ func (c *CommandContext) Reply(text string) {
 }
 
 // ini struct buat Cmd nanti disini bisa nambahin kaya permission dll.
-// misal kalo mau nambahin OwnerOnly nanti tambahin struct nya disini
+// misal kalo mau nambahin OwnerOnly nanti tambahin field nya disini
 // terus handle logic nya di eventHandler
 type Cmd struct {
 	Name  string

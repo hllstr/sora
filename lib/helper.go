@@ -16,7 +16,7 @@ import (
 	Tambahin function lain disini juga misal kaya React, Edit, dll.
 */
 
-func GetEpheremalDuration(msg *events.Message) (duration uint32, isEphe bool) {
+func GetEphemeralDuration(msg *events.Message) (duration uint32, isEphe bool) {
 	if msg == nil || msg.Message == nil {
 		return 0, false
 	}
@@ -48,7 +48,7 @@ func Reply(client *whatsmeow.Client, msg *events.Message, text string) (whatsmeo
 	}
 
 	// Biar gak pentung :p
-	if duration, omkeh := GetEpheremalDuration(msg); omkeh {
+	if duration, omkeh := GetEphemeralDuration(msg); omkeh {
 		ctxInfo.Expiration = &duration
 	}
 	// bypass participants
