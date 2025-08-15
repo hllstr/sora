@@ -37,7 +37,6 @@ func init() {
 	})
 }
 
-// function terpisah
 func getMemoryUsage() string {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
@@ -64,6 +63,7 @@ func capitalize(s string) string {
 }
 
 func info(ctx *CommandContext) {
+	myrepo := "https://githuh.com/hllstr/sora"
 	bullet := "✦"
 	osInfo, _ := host.Info()
 	cpuInfo, _ := cpu.Info()
@@ -73,7 +73,7 @@ func info(ctx *CommandContext) {
 	memUsage := getMemoryUsage()
 
 	registeredCmds := countCommands()
-	cpuUseggs, _ := cpu.Percent(time.Second, false)
+	//	cpuUseggs, _ := cpu.Percent(time.Second, false)
 	totalCores, err := cpu.Counts(true)
 	if err != nil {
 		return
@@ -88,9 +88,10 @@ func info(ctx *CommandContext) {
 	sb.WriteString(fmt.Sprintf("%s *Platform:* %s\n", bullet, platform))
 
 	sb.WriteString(fmt.Sprintf("%s *Memory Usage:* %s (Sora Alloc)\n", bullet, memUsage))
-	sb.WriteString(fmt.Sprintf("%s *CPU Usage:* %.2f%%\n", bullet, cpuUseggs[0]))
+	// CPU usex bikin delay 1 sex jir buat ngukurnya, gw comment aja, kalo lu mau nampilin cpu usage bisa di uncomment sajah.
+	// sb.WriteString(fmt.Sprintf("%s *CPU Usage:* %.2f%%\n", bullet, cpuUseggs[0]))
 	sb.WriteString(fmt.Sprintf("%s *Commands:* %d Registered\n", bullet, registeredCmds))
-	sb.WriteString("> *Download/Clone script nya hanya di https://githuh.com/hllstr/sora*\n> *Jangan lupa kasih star hehe :v*")
+	sb.WriteString(fmt.Sprintf("> *Download/Clone script nya hanya di %s*\n> *Jangan lupa kasih star hehe :v*", myrepo))
 	thumb := "https://i.pinimg.com/originals/7e/2b/fb/7e2bfb2629b8e72826b818a5e749839b.jpg"
 	finalText := sb.String()
 	ctxInfo := &waE2E.ContextInfo{
@@ -101,7 +102,7 @@ func info(ctx *CommandContext) {
 			ThumbnailURL:          proto.String(thumb),
 			RenderLargerThumbnail: proto.Bool(true),
 			MediaURL:              proto.String(thumb),
-			SourceURL:             proto.String("https://github.com/hllstr/sora"),
+			SourceURL:             proto.String(myrepo),
 			WtwaAdFormat:          proto.Bool(true),
 			MediaType:             waE2E.ContextInfo_ExternalAdReplyInfo_IMAGE.Enum(),
 		},
@@ -119,6 +120,7 @@ func info(ctx *CommandContext) {
 		ExtendedTextMessage: &waE2E.ExtendedTextMessage{
 			Text:        proto.String(finalText),
 			ContextInfo: ctxInfo,
+			MatchedText: proto.String(myrepo),
 		},
 	}, extra)
 	if err != nil {
