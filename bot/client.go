@@ -57,7 +57,8 @@ func initStore() (*sqlstore.Container, error) {
 	pragmas := []string{
 		"PRAGMA journal_mode=WAL;",
 		"PRAGMA synchronous=NORMAL;",
-		"PRAGMA cache_size=-4096;", // -4096 aja untuk sekarang karna masih simpel, nekstaym bisa tambahin ke -8192 / -16384
+		"PRAGMA cache_size=-16384;", // setelah gw test ternyata lebih baik pake yang 16M, memory usage nya juga gak terlalu jauh beda sama di set ke 4M ketika idle (5MB~7MB memory usage)
+		// -4096 / -8192 / -16384 : 4M / 8M / 16M, sesuaikan aja sesuai kebutuhan
 		"PRAGMA busy_timeout=5000;",
 	}
 	for _, pragma := range pragmas {
