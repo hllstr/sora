@@ -1,3 +1,5 @@
 sora
 session/
 .env
+tmp/
+.air.toml
