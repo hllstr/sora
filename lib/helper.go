@@ -40,6 +40,18 @@ func GetEphemeralDuration(msg *events.Message) (duration uint32, isEphe bool) {
 	return 0, false
 }
 
+// bypass participant function
+func Bypass(client *whatsmeow.Client, chatJID types.JID) whatsmeow.SendRequestExtra {
+	extra := whatsmeow.SendRequestExtra{}
+	if chatJID.Server == types.GroupServer {
+		ownID := client.Store.ID
+		if ownID != nil {
+			extra.TargetJID = []types.JID{*ownID}
+		}
+	}
+	return extra
+}
+
 func Reply(client *whatsmeow.Client, msg *events.Message, text string) (whatsmeow.SendResponse, error) {
 	ctxInfo := &waE2E.ContextInfo{
 		StanzaID:      &msg.Info.ID,
@@ -51,20 +63,14 @@ func Reply(client *whatsmeow.Client, msg *events.Message, text string) (whatsmeo
 	if duration, omkeh := GetEphemeralDuration(msg); omkeh {
 		ctxInfo.Expiration = &duration
 	}
-	// bypass participants
-	extra := whatsmeow.SendRequestExtra{}
-	if msg.Info.Chat.Server == types.GroupServer {
-		ownID := client.Store.ID
-		if ownID != nil {
-			extra.TargetJID = []types.JID{*ownID}
-		}
-	}
+	// bypass participant sekarang pakai function biar bisa dipake lebih gampang
+	bypass := Bypass(client, msg.Info.Chat)
 	return client.SendMessage(context.Background(), msg.Info.Chat, &waE2E.Message{
 		ExtendedTextMessage: &waE2E.ExtendedTextMessage{
 			Text:        &text,
 			ContextInfo: ctxInfo,
 		},
-	}, extra)
+	}, bypass) // taro di ujung sini.
 }
 
 func GetText(msg *events.Message) (text string, ok bool) {
