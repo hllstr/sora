@@ -18,7 +18,7 @@ type CommandContext struct {
 }
 
 // Disini helper function Reply dari package lib dibungkus lagi, biar pas dipake di package commands
-// bakalan jauh lebih simpel (gaperlu selalu import package dari lib untuk pake helper function)
+// bakalan jauh lebih simpel...
 // Selain Reply() nanti lu juga bisa tambahin function lain kaya Send() atau React() atau Edit()
 func (c *CommandContext) Reply(text string) {
 	if _, err := lib.Reply(c.Client, c.Message, text); err != nil {
