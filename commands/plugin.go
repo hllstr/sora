@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"log"
+	"sora/config"
 	"sora/lib"
 
 	"go.mau.fi/whatsmeow"
@@ -15,6 +16,7 @@ type CommandContext struct {
 	Message *events.Message
 	Args    []string
 	RawArgs string
+	Conf    *config.Configuration
 }
 
 // Disini helper function Reply dari package lib dibungkus lagi, biar pas dipake di package commands
@@ -30,10 +32,11 @@ func (c *CommandContext) Reply(text string) {
 // misal kalo mau nambahin OwnerOnly nanti tambahin field nya disini
 // terus handle logic nya di eventHandler
 type Cmd struct {
-	Name  string
-	Alias []string
-	Desc  string
-	Exec  func(ctx *CommandContext)
+	Name     string
+	Alias    []string
+	Desc     string
+	Category string
+	Exec     func(ctx *CommandContext)
 }
 
 var Commands = make(map[string]Cmd)
