@@ -16,13 +16,52 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
+// kita buwat custom logger biar log nya gak jorok.
+type CustomLogger struct {
+	oriLogger waLog.Logger
+}
+
+func MyCustomLogger(logAseli waLog.Logger) *CustomLogger {
+	return &CustomLogger{oriLogger: logAseli}
+}
+
+func (cl *CustomLogger) Errorf(msg string, args ...any) {
+	log := fmt.Sprintf(msg, args...)
+	if strings.Contains(log, "Failed to handle retry receipt ") {
+		return
+	}
+	cl.oriLogger.Errorf(msg, args...)
+}
+
+func (cl *CustomLogger) Warnf(msg string, args ...any) {
+	log := fmt.Sprintf(msg, args...)
+	if strings.Contains(log, "Server returned different participant list hash") {
+		return
+	}
+	cl.oriLogger.Warnf(msg, args...)
+}
+
+func (cl *CustomLogger) Infof(msg string, args ...any) {
+	cl.oriLogger.Infof(msg, args...)
+}
+
+func (cl *CustomLogger) Debugf(msg string, args ...any) {
+	cl.oriLogger.Debugf(msg, args...)
+}
+
+func (cl *CustomLogger) Sub(prefix string) waLog.Logger {
+	return MyCustomLogger(cl.oriLogger.Sub(prefix))
+}
+
+// omkeh done.
+
 func Konek() (*whatsmeow.Client, error) {
 	store, err := initStore()
 	if err != nil {
 		return nil, fmt.Errorf("gagal inisialisasi store : %w", err)
 	}
-
-	clientLog := waLog.Stdout("CLIENT", "INFO", true)
+	loggerAseli := waLog.Stdout("CLIENT", "INFO", true)
+	clientLog := MyCustomLogger(loggerAseli)
 	device, err := store.GetFirstDevice(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("gagal ngambil device dari store : %w", err)
