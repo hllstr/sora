@@ -26,6 +26,10 @@ Salah satu keunggulan utama Sora adalah portabilitasnya. Asalkan Go sudah terins
 * **Panel Pterodactyl**: Cocok untuk hosting panel yang speknya "kentang" sekalipun.
 * **VPS**: Tentu saja, dari VPS murah sampai yang paling gacor.
 
+## 🛠️ Prerequisites
+
+* **Go v1.24.6**: Download & Install ini di https://go.dev/dl (disono ada cara installnya) 
+
 ## 🚀 Instalasi & Menjalankan
 
 1.  **Clone repository ini:**
@@ -34,11 +38,14 @@ Salah satu keunggulan utama Sora adalah portabilitasnya. Asalkan Go sudah terins
     cd sora
     ```
 
-2.  **Buat file konfigurasi `.env`:**
-    Buat file bernama `.env` di direktori utama, lalu isi seperti contoh di bawah.
+2.  **Copy .env.example dan edit file `.env`:**
+    ```bash
+    cp .env.example .env
+    ```
+    Edit isinya sesuai keinginanmu
     ```env
     # Nomor WhatsApp yang akan dijadikan bot (contoh: 6281234567890)
-    NUMBER=""
+    NUMBER="6281234567890"
 
     # Prefix yang ingin digunakan, pisahkan dengan koma
     PREFIXES="/,.,!"
@@ -57,6 +64,14 @@ Salah satu keunggulan utama Sora adalah portabilitasnya. Asalkan Go sudah terins
     go run .
     ```
     Pada kali pertama, kamu akan diminta untuk melakukan pairing (memasukkan nomor telepon untuk Pairing Code atau mengetik `qr` untuk Kode QR). Sesi akan disimpan di dalam folder `session/`.
+
+### Untuk Panel Pterodactyl
+**Setelah Clone, Kalian bisa langsung pake script `setup.sh` yang udah gw siapin untuk install di panel**
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
 
 ## 🧩 Menambah Command Baru
 
