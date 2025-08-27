@@ -65,11 +65,10 @@ Salah satu keunggulan utama Sora adalah portabilitasnya. Asalkan Go sudah terins
     ```
     Pada kali pertama, kamu akan diminta untuk melakukan pairing (memasukkan nomor telepon untuk Pairing Code atau mengetik `qr` untuk Kode QR). Sesi akan disimpan di dalam folder `session/`.
 
-### Untuk Panel Pterodactyl
-**Setelah Clone, Kalian bisa langsung pake script `setup.sh` yang udah gw siapin untuk install di panel**
+### Setup Script (kalo mau install otomatis)
+**Setelah Clone, Kalian bisa langsung pake script `setup.sh` yang udah gw siapin untuk install di panel, termux, ataupun vps**
 ```bash
-chmod +x setup.sh
-./setup.sh
+bash setup.sh
 ```
 
 
