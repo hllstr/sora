@@ -24,7 +24,13 @@ func GetEphemeralDuration(msg *events.Message) (duration uint32, isEphe bool) {
 	var ctxInfo *waE2E.ContextInfo
 	if m := msg.Message.GetExtendedTextMessage(); m != nil {
 		ctxInfo = m.GetContextInfo()
-	} // Tambahin type message lain disini, buat ngambil ContextInfo nya
+	} else if m := msg.Message.GetImageMessage(); m != nil {
+		ctxInfo = m.GetContextInfo()
+	} else if m := msg.Message.GetVideoMessage(); m != nil {
+		ctxInfo = m.GetContextInfo()
+	} else if msg.Message.GetDocumentMessage() != nil {
+		ctxInfo = m.GetContextInfo()
+	}
 
 	if ctxInfo != nil {
 		if exp := ctxInfo.GetExpiration(); exp > 0 {
