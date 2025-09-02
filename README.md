@@ -112,9 +112,9 @@ Jika kamu mencari referensi atau bot lain, pastikan untuk melihat proyek-proyek 
 
 ## Hosting Rekomendasi ☁️
 
-Butuh tempat untuk menjalankan bot ini 24/7? Gw pribadi pake dan sangat merekomendasikan panel Pterodactyl murah dan gacor dari **Caliph Cloud**.
+Butuh tempat untuk menjalankan bot ini 24/7? Panel Pterodactyl murah dan gacor dari **Athars** solusinya (cuma goceng jir).
 
-🔗 **Link: [https://caliph.cloud/](https://caliph.cloud/)**
+🔗 **Ling: [+62 819-0978-9118](https://wa.me/6281909789118?text=bang+buy+panel+yg+goceng)**
 
 ## 🤝 Kontribusi
 
