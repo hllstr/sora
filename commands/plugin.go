@@ -28,15 +28,23 @@ func (c *CommandContext) Reply(text string) {
 	}
 }
 
+type PermissionLevel int
+
+const (
+	Public PermissionLevel = iota
+	Owner
+)
+
 // ini struct buat Cmd nanti disini bisa nambahin kaya permission dll.
 // misal kalo mau nambahin OwnerOnly nanti tambahin field nya disini
 // terus handle logic nya di eventHandler
 type Cmd struct {
-	Name     string
-	Alias    []string
-	Desc     string
-	Category string
-	Exec     func(ctx *CommandContext)
+	Name       string
+	Alias      []string
+	Desc       string
+	Category   string
+	Permission PermissionLevel
+	Exec       func(ctx *CommandContext)
 }
 
 var Commands = make(map[string]Cmd)
