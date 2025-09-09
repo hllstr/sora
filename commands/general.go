@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 	"sora/lib"
 	"sort"
@@ -12,6 +13,7 @@ import (
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v3/process"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"google.golang.org/protobuf/proto"
 )
@@ -38,12 +40,38 @@ func init() {
 	})
 
 	Plugin(Cmd{
-		Name:     "menu",
-		Alias:    []string{"help", "h"},
+		Name:     "help",
+		Alias:    []string{"h"},
 		Category: "general",
 		Desc:     "Show menu.",
 		Exec:     help,
 	})
+}
+
+func formatUptime(d time.Duration) string {
+	d = d.Round(time.Second)
+	days := d / (24 * time.Hour)
+	d -= days * 24 * time.Hour
+	hours := d / time.Hour
+	d -= hours * time.Hour
+	minutes := d / time.Minute
+	d -= minutes * time.Minute
+	seconds := d / time.Second
+
+	var parts []string
+	if days > 0 {
+		parts = append(parts, fmt.Sprintf("%dd", days))
+	}
+	if hours > 0 {
+		parts = append(parts, fmt.Sprintf("%dh", hours))
+	}
+	if minutes > 0 {
+		parts = append(parts, fmt.Sprintf("%dm", minutes))
+	}
+	if seconds > 0 || len(parts) == 0 {
+		parts = append(parts, fmt.Sprintf("%ds", seconds))
+	}
+	return strings.Join(parts, " ")
 }
 
 func getMemoryUsage() string {
@@ -82,10 +110,25 @@ func info(ctx *CommandContext) {
 	memUsage := getMemoryUsage()
 
 	registeredCmds := countCommands()
-	//	cpuUseggs, _ := cpu.Percent(time.Second, false)
 	totalCores, err := cpu.Counts(true)
 	if err != nil {
 		return
+	}
+
+	var uptimeStr string
+	pid := os.Getpid()
+	p, err := process.NewProcess(int32(pid))
+	if err == nil {
+		createTime, err := p.CreateTime()
+		if err == nil {
+			startTime := time.Unix(0, createTime*int64(time.Millisecond))
+			uptime := time.Since(startTime)
+			uptimeStr = formatUptime(uptime)
+		}
+	}
+
+	if uptimeStr == "" {
+		uptimeStr = "Calculating..."
 	}
 	var sb strings.Builder
 	sb.WriteString("*Sora (空) is a Simple Base Bot WhatsApp written in Go using Whatsmeow Library.*\n")
@@ -96,10 +139,7 @@ func info(ctx *CommandContext) {
 	sb.WriteString(fmt.Sprintf("%s *RAM:* %.2f GB / %.2f GB\n", bullet, float64(vmInfo.Used)/1024/1024/1024, float64(vmInfo.Total)/1024/1024/1024))
 	sb.WriteString(fmt.Sprintf("%s *Platform:* %s\n", bullet, platform))
 	sb.WriteString(fmt.Sprintf("%s *Memory Usage:* %s (Sora Alloc)\n", bullet, memUsage))
-	// CPU usex bikin delay 1 sex jir buat ngukurnya,makanya gw comment aja, kalo lu mau nampilin cpu usage bisa di uncomment sajah.
-	// sb.WriteString(fmt.Sprintf("%s *CPU Usage:* %.2f%%\n", bullet, cpuUseggs[0]))
-	// or nanti gw buat kek Edit aja, pesan awal nanti bkalan measuring... terus 1 detik kemudian muncul usage nya
-	// tapi nanti aja deng, mager..
+	sb.WriteString(fmt.Sprintf("%s *Uptime:* %s\n", bullet, uptimeStr))
 	sb.WriteString(fmt.Sprintf("%s *Commands:* %d Registered\n", bullet, registeredCmds))
 	sb.WriteString(fmt.Sprintf("> *Source Code : %s.*\n> *Don't forget to give a star ✨٩(ˊᗜˋ**)و✨", myrepo))
 	thumb := "https://i.pinimg.com/originals/7e/2b/fb/7e2bfb2629b8e72826b818a5e749839b.jpg"
