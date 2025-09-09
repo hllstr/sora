@@ -2,6 +2,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
@@ -96,4 +97,26 @@ func GetText(msg *events.Message) (text string, ok bool) {
 	}
 
 	return "", false
+}
+
+func FindPN(client *whatsmeow.Client, msgInfo *types.MessageInfo) (string, error) {
+	sender := msgInfo.Sender.ToNonAD()
+	if msgInfo.AddressingMode != types.AddressingModeLID {
+		return sender.User, nil
+	}
+
+	if !msgInfo.IsGroup {
+		return "", fmt.Errorf("sender is using LID in private chat—cannot resolve phone number")
+	}
+	groupInfo, err := client.GetGroupInfo(msgInfo.Chat)
+	if err != nil {
+		return "", fmt.Errorf("error fetching group info: %w", err)
+	}
+	for _, p := range groupInfo.Participants {
+		if p.JID == sender {
+			return p.PhoneNumber.User, nil
+		}
+	}
+
+	return "", fmt.Errorf("could not find sender in group participants")
 }
