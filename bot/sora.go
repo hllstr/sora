@@ -89,12 +89,27 @@ func (b *Bot) commandHandler(evt *events.Message) {
 		return
 	}
 
+	if cmd.Permission > commands.Public {
+		senderNum, err := lib.FindPN(b.Client, &evt.Info)
+		if err != nil {
+			return
+		}
+		ownerNum := strings.Split(b.Config.Owner, "@")[0]
+		if cmd.Permission == commands.Owner {
+			if senderNum != ownerNum {
+				b.Client.Log.Warnf("CMD « Permission denied for '%s' from %s", commandName, senderNum)
+				return
+			}
+		}
+	}
+
 	ctx := &commands.CommandContext{
 		Ctx:     context.Background(),
 		Client:  b.Client,
 		Message: evt,
 		Args:    args,
 		RawArgs: rawArgs,
+		Conf:    b.Config,
 	}
 
 	go cmd.Exec(ctx)
