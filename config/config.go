@@ -14,7 +14,7 @@ import (
 */
 
 type Configuration struct {
-	Number string
+	Owner  string
 	Prefix []string
 	Mode   string
 }
@@ -25,7 +25,7 @@ func LoadConf() *Configuration {
 	}
 	envPrefixes := os.Getenv("PREFIXES")
 	return &Configuration{
-		Number: os.Getenv("NUMBER"),
+		Owner:  os.Getenv("OWNER"),
 		Prefix: strings.Split(envPrefixes, ","),
 		Mode:   os.Getenv("MODE"),
 	}
