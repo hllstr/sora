@@ -8,8 +8,10 @@ import (
 	"sora/config"
 	"sora/lib"
 	"strings"
+	"sync"
 	"time"
 
+	// "go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -17,6 +19,7 @@ import (
 type Bot struct {
 	Client *whatsmeow.Client
 	Config *config.Configuration
+	MapID  sync.Map
 }
 
 func NewBot(conf *config.Configuration) *Bot {
@@ -26,6 +29,7 @@ func NewBot(conf *config.Configuration) *Bot {
 }
 
 func (b *Bot) Start() error {
+	go b.MapIDCleaner()
 	wa, err := Konek()
 	if err != nil {
 		return fmt.Errorf("gagal connect ke client WhatsApp : %w", err)
@@ -42,19 +46,51 @@ func (b *Bot) Disconnect() {
 	}
 }
 
-// refactor dikit biar rapih, + nambah logger mesejjj ama timestamp filter sekalian
+// function untuk bersihin map ID
+func (b *Bot) MapIDCleaner() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		now := time.Now()
+		b.MapID.Range(func(key, value any) bool {
+			timestamp, ok := value.(time.Time)
+			if !ok {
+				return true
+			}
+			if now.Sub(timestamp) > 5*time.Minute {
+				b.MapID.Delete(key)
+			}
+			return true
+		})
+	}
+}
+
 func (b *Bot) eventHandler(rawEvt any) {
 	switch evt := rawEvt.(type) {
 	case *events.Message:
+		// jangan proses pesan basi
+		if time.Since(evt.Info.Timestamp) > 10*time.Second {
+			return
+		}
+		// b.Client.Log.Infof("LOG « ID: %s", evt.Info.ID)
+		msgText, isText := lib.GetText(evt)
+		if !isText || msgText == "" { // mastiin isinya itu pesan/text, supaya SenderKeyDistributionMessage, etc. gak masuk ke duplicate check
+			go b.logMessageHandler(evt)
+			return
+		}
+		// catat ID msg dan jangan proses pesan duplicate
+		_, loaded := b.MapID.LoadOrStore(evt.Info.ID, time.Now())
+		if loaded {
+			// b.Client.Log.Warnf("CMD « Duplicate message from ID : %s", evt.Info.ID)
+			return
+		}
 		b.commandHandler(evt)
 		go b.logMessageHandler(evt)
 	}
 }
 
 func (b *Bot) commandHandler(evt *events.Message) {
-	if time.Since(evt.Info.Timestamp) > 10*time.Second {
-		return
-	}
 	messageText, ok := lib.GetText(evt)
 	if !ok {
 		return
@@ -90,14 +126,15 @@ func (b *Bot) commandHandler(evt *events.Message) {
 	}
 
 	if cmd.Permission > commands.Public {
-		senderNum, err := lib.FindPN(b.Client, &evt.Info)
+		sender, err := b.Client.Store.LIDs.GetPNForLID(context.Background(), evt.Info.Sender)
 		if err != nil {
 			return
 		}
-		ownerNum := strings.Split(b.Config.Owner, "@")[0]
+		senderNum := sender.User
+		ownerNum := b.Config.Owner
 		if cmd.Permission == commands.Owner {
 			if senderNum != ownerNum {
-				b.Client.Log.Warnf("CMD « Permission denied for '%s' from %s", commandName, senderNum)
+				b.Client.Log.Warnf("CMD « Permission denied for '%s' from %s seharusnya %s", commandName, senderNum, ownerNum)
 				return
 			}
 		}
@@ -116,7 +153,7 @@ func (b *Bot) commandHandler(evt *events.Message) {
 
 	var sourceName string
 	if evt.Info.IsGroup {
-		groupInfo, _ := b.Client.GetGroupInfo(evt.Info.Chat)
+		groupInfo, _ := b.Client.GetGroupInfo(ctx.Ctx, evt.Info.Chat)
 		if groupInfo != nil {
 			sourceName = fmt.Sprintf("in Group '%s'", groupInfo.Name)
 		} else {
@@ -133,7 +170,7 @@ func (b *Bot) logMessageHandler(evt *events.Message) {
 	if evt.Info.Chat.String() == "status@broadcast" {
 		source = fmt.Sprintf("Status from '%s'", evt.Info.PushName)
 	} else if evt.Info.IsGroup {
-		groupInfo, err := b.Client.GetGroupInfo(evt.Info.Chat)
+		groupInfo, err := b.Client.GetGroupInfo(context.Background(), evt.Info.Chat)
 		if err != nil {
 			return
 		}
@@ -143,7 +180,7 @@ func (b *Bot) logMessageHandler(evt *events.Message) {
 			source = fmt.Sprintf("Group '%s'", evt.Info.Chat.String())
 		}
 	} else if evt.Info.Chat.Server == "newsletter" {
-		newsletterIngfo, err := b.Client.GetNewsletterInfo(evt.Info.Chat)
+		newsletterIngfo, err := b.Client.GetNewsletterInfo(context.Background(), evt.Info.Chat)
 		if err != nil {
 			return
 		}
