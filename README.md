@@ -12,6 +12,10 @@
 
 Proyek ini dirancang sebagai "kerangka dasar" yang simpel dan super ringan. Tujuannya adalah menyediakan fondasi yang bersih dan mudah dipahami, sehingga kamu bisa langsung fokus mengembangkan fitur-fitur unikmu sendiri tanpa harus pusing dengan kerumitan setup awal.
 
+## 📝 Developer Notes
+
+hY, gw coba lanjutin ni repo karna dah lama ga ngodink jir jadi kangen main bot wangsaf xD
+
 ## ✨ Filosofi & Fitur
 
 * **Simplicity**: Kode ditulis sesederhana mungkin, biar gampang dioprek.
@@ -45,7 +49,7 @@ Salah satu keunggulan utama Sora adalah portabilitasnya. Asalkan Go sudah terins
     Edit isinya sesuai keinginanmu
     ```env
     # Nomor WhatsApp yang akan dijadikan bot (contoh: 6281234567890)
-    NUMBER="6281234567890"
+    OWNER="6281234567890"
 
     # Prefix yang ingin digunakan, pisahkan dengan koma
     PREFIXES="/,.,!"
