@@ -3,3 +3,4 @@ session/
 .env
 tmp/
 .air.toml
+.idx/dev.nix
