@@ -126,16 +126,24 @@ func (b *Bot) commandHandler(evt *events.Message) {
 	}
 
 	if cmd.Permission > commands.Public {
-		sender, err := b.Client.Store.LIDs.GetPNForLID(context.Background(), evt.Info.Sender)
-		if err != nil {
-			return
+		sender := evt.Info.Sender.ToNonAD()
+		if evt.Info.AddressingMode == "lid" {
+			var err error
+			sender, err = b.Client.Store.LIDs.GetPNForLID(context.Background(), evt.Info.Sender)
+			if err != nil {
+				b.Client.Log.Errorf("CMD « Sum error happen bruh : ", err)
+				return
+			}
 		}
 		senderNum := sender.User
 		ownerNum := b.Config.Owner
 		if cmd.Permission == commands.Owner {
 			if senderNum != ownerNum {
-				b.Client.Log.Warnf("CMD « Permission denied for '%s' from %s seharusnya %s", commandName, senderNum, ownerNum)
+				b.Client.Log.Warnf("CMD « Permission denied for '%s' from %s", commandName, senderNum)
 				return
+			}
+			if senderNum == ownerNum {
+				b.Client.Log.Infof("CMD « Permission granted for '%s' from %s", commandName, senderNum)
 			}
 		}
 	}
