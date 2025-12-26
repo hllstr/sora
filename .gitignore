@@ -4,3 +4,4 @@ session/
 tmp/
 .air.toml
 .idx/dev.nix
+commands/gemini/history/*
