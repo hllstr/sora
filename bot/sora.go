@@ -127,7 +127,8 @@ func (b *Bot) commandHandler(evt *events.Message) {
 
 	if cmd.Permission > commands.Public {
 		sender := evt.Info.Sender.ToNonAD()
-		if evt.Info.AddressingMode == "lid" {
+		// b.Client.Log.Warnf("AddressingMode : %s", evt.Info.Sender.Server)
+		if evt.Info.Sender.Server == "lid" {
 			var err error
 			sender, err = b.Client.Store.LIDs.GetPNForLID(context.Background(), evt.Info.Sender)
 			if err != nil {
