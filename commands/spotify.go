@@ -29,8 +29,8 @@ func init() {
 	Plugin(Cmd{
 		Name:     "spotify",
 		Category: "tools",
-		Alias:    []string{"spdl"},
-		Desc:     "Donlod lagu dari spotify",
+		Alias:    []string{"sp"},
+		Desc:     "Download song",
 		Exec:     spotify,
 	})
 }
@@ -94,9 +94,6 @@ func spotify(ctx *CommandContext) {
 		},
 	}
 	if exp, ok := lib.GetEphemeralDuration(ctx.Message); ok {
-		if audioMsg.ContextInfo == nil {
-			audioMsg.ContextInfo = &waE2E.ContextInfo{}
-		}
 		audioMsg.ContextInfo.Expiration = proto.Uint32(exp)
 	}
 	_, err = ctx.Client.SendMessage(ctx.Ctx, ctx.Message.Info.Chat, &waE2E.Message{AudioMessage: audioMsg}, lib.Bypass(ctx.Client, ctx.Message.Info.Chat))
