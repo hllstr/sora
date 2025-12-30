@@ -60,20 +60,22 @@ func gemini(ctx *cmd.CommandContext) {
 	if text == "" {
 		text = "halo gemini"
 	}
-	// [Agus | 24/11/2025, 16:39] Pesan: halo gemini
 	finalMsg := fmt.Sprintf("[%s | %s] Pesan: %s", senderName, timestamp, text)
 
 	// reply condition
-	repliedMsg := ctx.Message.Message.ExtendedTextMessage.ContextInfo
-	if ctx.Message.Message.ExtendedTextMessage.ContextInfo.QuotedMessage != nil {
-		repliedJID := *repliedMsg.Participant
-		repliedText, _ := lib.GetText(repliedMsg.QuotedMessage)
-		repliedName := "Gemini"
-		ownJID := ctx.Client.Store.ID.ToNonAD().String()
-		if repliedJID != ownJID {
-			repliedName = lib.GetCachedName(repliedJID)
+	// nullchecknya ribet banget bangsaf, kalo kedepannya bakal ada pengecekkan reply lagi keknya bakal gw bikin function aja, untuk sekarang gini dulu wes
+	if extMsg := ctx.Message.Message.ExtendedTextMessage; extMsg != nil && extMsg.ContextInfo != nil {
+		ctxInfo := extMsg.ContextInfo
+		if ctxInfo.QuotedMessage != nil && ctxInfo.Participant != nil {
+			repliedJID := *ctxInfo.Participant
+			repliedText, _ := lib.GetText(ctxInfo.QuotedMessage)
+			repliedName := "Gemini"
+			ownJID := ctx.Client.Store.ID.ToNonAD().String()
+			if repliedJID != ownJID {
+				repliedName = lib.GetCachedName(repliedJID)
+			}
+			finalMsg = fmt.Sprintf(`[%s | %s] (Membalas ke "%s: %s") Dengan pesan: %s`, senderName, timestamp, repliedName, repliedText, text)
 		}
-		finalMsg = fmt.Sprintf(`[%s | %s] (Membalas ke "%s: %s") Dengan pesan: %s`, senderName, timestamp, repliedName, repliedText, text)
 	}
 
 	// ctx.Client.Log.Warnf("Final Message: %s", finalMsg)
