@@ -8,17 +8,17 @@ import (
 	"syscall"
 
 	"sora/bot"
-
 	"sora/config"
 
 	_ "sora/commands"
+	"sora/commands/gemini"
 )
 
 func main() {
 
 	cfg := config.LoadConf()
 	log.Println("Configuration loaded.")
-
+	gemini.InitGemini()
 	myBot := bot.NewBot(cfg)
 
 	_, cancel := context.WithCancel(context.Background())
