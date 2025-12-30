@@ -69,12 +69,20 @@ func (b *Bot) MapIDCleaner() {
 func (b *Bot) eventHandler(rawEvt any) {
 	switch evt := rawEvt.(type) {
 	case *events.Message:
+
+		// isReply := false
+		// if evt.Message.ExtendedTextMessage.ContextInfo.QuotedMessage != nil {
+		// 	isReply = true
+		// }
+		// b.Client.Log.Warnf("isReply: %t\n", isReply)
+
+		lib.UpdatePushname(evt.Info.Sender.ToNonAD().String(), evt.Info.PushName)
 		// jangan proses pesan basi
 		if time.Since(evt.Info.Timestamp) > 10*time.Second {
 			return
 		}
 		// b.Client.Log.Infof("LOG « ID: %s", evt.Info.ID)
-		msgText, isText := lib.GetText(evt)
+		msgText, isText := lib.GetText(evt.Message)
 		if !isText || msgText == "" { // mastiin isinya itu pesan/text, supaya SenderKeyDistributionMessage, etc. gak masuk ke duplicate check
 			go b.logMessageHandler(evt)
 			return
@@ -91,7 +99,7 @@ func (b *Bot) eventHandler(rawEvt any) {
 }
 
 func (b *Bot) commandHandler(evt *events.Message) {
-	messageText, ok := lib.GetText(evt)
+	messageText, ok := lib.GetText(evt.Message)
 	if !ok {
 		return
 	}
@@ -220,7 +228,7 @@ func (b *Bot) logMessageHandler(evt *events.Message) {
 		}
 	}
 	content := "(Nothing)"
-	if text, ok := lib.GetText(evt); ok && text != "" {
+	if text, ok := lib.GetText(evt.Message); ok && text != "" {
 		content = fmt.Sprintf(`"%s"`, text)
 	} else if react := evt.Message.GetReactionMessage(); react != nil {
 		content = react.GetText()
