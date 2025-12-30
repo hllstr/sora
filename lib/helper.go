@@ -2,7 +2,10 @@ package lib
 
 import (
 	"context"
+	"strings"
+
 	//"fmt"
+	"sync"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
@@ -11,6 +14,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+var CachedName sync.Map
 
 func GetEphemeralDuration(msg *events.Message) (duration uint32, isEphe bool) {
 	if msg == nil || msg.Message == nil {
@@ -71,24 +75,42 @@ func Reply(client *whatsmeow.Client, msg *events.Message, text string) (whatsmeo
 			Text:        &text,
 			ContextInfo: ctxInfo,
 		},
-	}, bypass) 
+	}, bypass)
 }
 
-func GetText(msg *events.Message) (text string, ok bool) {
-	if msg == nil || msg.Message == nil {
+func GetText(msg *waE2E.Message) (text string, ok bool) {
+	if msg == nil {
 		return "", false
 	}
-	if m := msg.Message.GetConversation(); m != "" {
+	if m := msg.GetConversation(); m != "" {
 		return m, true
-	} else if m := msg.Message.GetExtendedTextMessage(); m != nil {
+	} else if m := msg.GetExtendedTextMessage(); m != nil {
 		return m.GetText(), true
-	} else if m := msg.Message.GetImageMessage(); m != nil {
+	} else if m := msg.GetImageMessage(); m != nil {
 		return m.GetCaption(), true
-	} else if m := msg.Message.GetVideoMessage(); m != nil {
+	} else if m := msg.GetVideoMessage(); m != nil {
 		return m.GetCaption(), true
-	} else if m := msg.Message.GetDocumentMessage(); m != nil {
+	} else if m := msg.GetDocumentMessage(); m != nil {
 		return m.GetCaption(), true
 	}
 
 	return "", false
+}
+
+func UpdatePushname(jid, name string) {
+	if name == "" || jid == "" {
+		return
+	}
+	existingName, ok := CachedName.Load(jid)
+	if !ok || existingName.(string) != name {
+		CachedName.Store(jid, name)
+	}
+}
+
+func GetCachedName(jid string) string {
+	value, ok := CachedName.Load(jid)
+	if ok {
+		return value.(string)
+	}
+	return strings.Split(jid, "@")[0]
 }
