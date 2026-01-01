@@ -13,6 +13,7 @@ import (
 
 	// "go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
 
@@ -36,11 +37,13 @@ func (b *Bot) Start() error {
 	}
 	b.Client = wa
 	b.Client.AddEventHandler(b.eventHandler)
+	b.Client.SendPresence(context.Background(), types.PresenceAvailable)
 	return nil
 }
 
 func (b *Bot) Disconnect() {
 	if b.Client != nil {
+		b.Client.SendPresence(context.Background(), types.PresenceUnavailable)
 		b.Client.Log.Infof("Disconnecting bot connection...")
 		b.Client.Disconnect()
 	}
