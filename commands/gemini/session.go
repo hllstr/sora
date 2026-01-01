@@ -2,9 +2,9 @@ package gemini
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"google.golang.org/genai"
 )
@@ -15,9 +15,9 @@ var (
 )
 
 func SaveSession(chatID string, history []*genai.Content) {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		log.Printf("Error getting current directory: %v", err)
+	dir := filepath.Join("commands", "gemini", "history")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		log.Printf("Error creating directory: %v", err)
 		return
 	}
 
@@ -26,29 +26,29 @@ func SaveSession(chatID string, history []*genai.Content) {
 		log.Printf("Error marshaling history: %v", err)
 		return
 	}
-	loc := fmt.Sprintf(currentDir+"/commands/gemini//history/%s.json", chatID)
+	loc := filepath.Join(dir, chatID+".json")
 	err = os.WriteFile(loc, data, 0644)
 	if err != nil {
-		log.Printf("Error writing history: %v, \n Current Directory: %s", err, currentDir)
+		log.Printf("Error writing history: %v", err)
 	}
 }
 
 func LoadSession(chatID string) []*genai.Content {
 	var history []*genai.Content
-	currentDir, err := os.Getwd()
-	if err != nil {
-		log.Printf("Error getting current directory: %v", err)
-		return nil
-	}
-	loc := fmt.Sprintf(currentDir+"/commands/gemini/history/%s.json", chatID)
+	loc := filepath.Join("commands", "gemini", "history", chatID+".json")
 	if _, err := os.Stat(loc); os.IsNotExist(err) {
 		return nil
 	}
 	historyData, err := os.ReadFile(loc)
-	if err == nil {
-		json.Unmarshal(historyData, &history)
-	} else {
+	if err != nil {
 		log.Printf("Error reading history: %v", err)
+		return nil
 	}
+	err = json.Unmarshal(historyData, &history)
+	if err != nil {
+		log.Printf("Error unmarshaling history: %v", err)
+		return nil
+	}
+	
 	return history
 }
