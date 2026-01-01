@@ -8,6 +8,7 @@ import (
 	"sora/lib"
 	"time"
 
+	"go.mau.fi/whatsmeow/types"
 	"google.golang.org/genai"
 )
 
@@ -33,14 +34,18 @@ func InitGemini() {
 
 func gemini(ctx *cmd.CommandContext) {
 	var nol int32
+	jakarta, _ := time.LoadLocation("Asia/Jakarta")
+	now := time.Now().In(jakarta)
+	timestamp := now.Format("02/01/2006, 15:04")
+	senderName := ctx.Message.Info.PushName
+	text := ctx.RawArgs
+	chatID := ctx.Message.Info.Chat.String()
 	config := &genai.GenerateContentConfig{
 		ThinkingConfig: &genai.ThinkingConfig{
-			ThinkingBudget: &nol, // disable tingking, hemat token sob
+			ThinkingBudget: &nol,
 		},
-		SystemInstruction: genai.NewContentFromText("Kamu adalah seorang E Ay yang santai, namamu gemini, jawab teks pengguna dengan sesingkat dan sesantai mungkin seperti sedang chattingan di whatsapp", genai.RoleUser),
+		SystemInstruction: genai.NewContentFromText("Kamu adalah seorang E Ay yang santai, namamu gemini, jawab teks pengguna dengan sesingkat dan sesantai mungkin seperti sedang chattingan di whatsapp. nanti pengguna bawa metadata kaya nama, timestamp", genai.RoleUser),
 	}
-
-	chatID := ctx.Message.Info.Chat.String()
 	session, ok := ActiveSessions[chatID]
 	if !ok {
 		var err error
@@ -52,33 +57,25 @@ func gemini(ctx *cmd.CommandContext) {
 		}
 		ActiveSessions[chatID] = session
 	}
-	jakarta, _ := time.LoadLocation("Asia/Jakarta")
-	now := time.Now().In(jakarta)
-	timestamp := now.Format("02/01/2006, 15:04")
-	senderName := ctx.Message.Info.PushName
-	text := ctx.RawArgs
 	if text == "" {
 		text = "halo gemini"
 	}
 	finalMsg := fmt.Sprintf("[%s | %s] Pesan: %s", senderName, timestamp, text)
 
-	// reply condition
-	// nullchecknya ribet banget bangsaf, kalo kedepannya bakal ada pengecekkan reply lagi keknya bakal gw bikin function aja, untuk sekarang gini dulu wes
-	if extMsg := ctx.Message.Message.ExtendedTextMessage; extMsg != nil && extMsg.ContextInfo != nil {
-		ctxInfo := extMsg.ContextInfo
-		if ctxInfo.QuotedMessage != nil && ctxInfo.Participant != nil {
-			repliedJID := *ctxInfo.Participant
-			repliedText, _ := lib.GetText(ctxInfo.QuotedMessage)
-			repliedName := "Gemini"
-			ownJID := ctx.Client.Store.ID.ToNonAD().String()
-			if repliedJID != ownJID {
-				repliedName = lib.GetCachedName(repliedJID)
-			}
-			finalMsg = fmt.Sprintf(`[%s | %s] (Membalas ke "%s: %s") Dengan pesan: %s`, senderName, timestamp, repliedName, repliedText, text)
+	if isReply(ctx.Message.Message) == true {
+		ctxInfo := ctx.Message.Message.ExtendedTextMessage.ContextInfo
+		repliedJID := *ctxInfo.Participant
+		repliedText, _ := lib.GetText(ctxInfo.QuotedMessage)
+		repliedName := "Gemini"
+		ownJID := ctx.Client.Store.ID.ToNonAD().String()
+		if repliedJID != ownJID {
+			repliedName = lib.GetCachedName(repliedJID)
 		}
+		finalMsg = fmt.Sprintf(`[%s | %s] (Membalas ke "%s: %s") Dengan pesan: %s`, senderName, timestamp, repliedName, repliedText, text)
 	}
-
 	// ctx.Client.Log.Warnf("Final Message: %s", finalMsg)
+	ctx.Client.SendChatPresence(ctx.Ctx, ctx.Message.Info.Chat, types.ChatPresenceComposing, types.ChatPresenceMediaText)
+	defer ctx.Client.SendChatPresence(ctx.Ctx, ctx.Message.Info.Chat, types.ChatPresenceComposing, types.ChatPresenceMediaText)
 	result, err := session.SendMessage(context.Background(), genai.Part{Text: finalMsg})
 	if err != nil {
 		ctx.Client.Log.Errorf("Error generating content: %v", err)
@@ -86,5 +83,6 @@ func gemini(ctx *cmd.CommandContext) {
 	}
 	SaveSession(chatID, session.History(true))
 	ctx.Reply(result.Text())
+	ctx.Client.SendChatPresence(ctx.Ctx, ctx.Message.Info.Chat, types.ChatPresencePaused, types.ChatPresenceMediaText)
 	// ctx.Client.Log.Warnf("Respon Gemini: %s", result.Text())
 }
