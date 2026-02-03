@@ -12,7 +12,7 @@ import (
 */
 
 type Configuration struct {
-	Owner  string
+	Owner  []string
 	Prefix []string
 	Mode   string
 }
