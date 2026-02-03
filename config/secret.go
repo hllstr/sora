@@ -2,14 +2,16 @@ package config
 
 import (
 	"os"
+	"strings"
 )
 
 type Secrets struct {
-	Owner string
+	Owner []string
 }
 
 func loadSecret() Secrets {
+	ownerEnv := os.Getenv("OWNER")
 	return Secrets{
-		Owner: os.Getenv("OWNER"),
+		Owner: strings.Split(ownerEnv, ","),
 	}
 }
