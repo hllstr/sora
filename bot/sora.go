@@ -7,6 +7,7 @@ import (
 	"sora/commands"
 	"sora/config"
 	"sora/lib"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -69,6 +70,15 @@ func (b *Bot) MapIDCleaner() {
 	}
 }
 
+func (b *Bot) isOwner(user string) bool {
+	for _, ownerNum := range b.Config.Owner {
+		if user == ownerNum {
+			return true
+		}
+	}
+	return false
+}
+
 func (b *Bot) eventHandler(rawEvt any) {
 	switch evt := rawEvt.(type) {
 	case *events.Message:
@@ -106,19 +116,17 @@ func (b *Bot) commandHandler(evt *events.Message) {
 	if !ok {
 		return
 	}
-	if b.Config.Mode == "self" && !evt.Info.IsFromMe {
-		return
-	}
+
 	var foundPrefix string
+	// sort prefix biar no prefix di check paling akir
+	sort.Slice(b.Config.Prefix, func(i, j int) bool {
+		return len(b.Config.Prefix[i]) > len(b.Config.Prefix[j])
+	})
 	for _, prefix := range b.Config.Prefix {
 		if strings.HasPrefix(messageText, prefix) {
 			foundPrefix = prefix
 			break
 		}
-	}
-
-	if foundPrefix == "" {
-		return
 	}
 
 	trimmedText := strings.TrimPrefix(messageText, foundPrefix)
@@ -135,28 +143,33 @@ func (b *Bot) commandHandler(evt *events.Message) {
 	if !found {
 		return
 	}
+	sender := evt.Info.Sender.ToNonAD()
+	// b.Client.Log.Warnf("AddressingMode : %s", evt.Info.Sender.Server)
+	if evt.Info.Sender.Server == "lid" {
+		var err error
+		sender, err = b.Client.Store.LIDs.GetPNForLID(context.Background(), evt.Info.Sender)
+		if err != nil {
+			b.Client.Log.Errorf("CMD « Sum error happen bruh : ", err)
+			return
+		}
+	}
+	senderNum := sender.User
+	if b.Config.Mode == "self" && !evt.Info.IsFromMe && !b.isOwner(senderNum) {
+		return
+	}
+	if b.Config.Mode == "public" && !evt.Info.IsFromMe && !b.isOwner(senderNum) {
+		if foundPrefix == "" {
+			return
+		}
+	}
 
 	if cmd.Permission > commands.Public {
-		sender := evt.Info.Sender.ToNonAD()
-		// b.Client.Log.Warnf("AddressingMode : %s", evt.Info.Sender.Server)
-		if evt.Info.Sender.Server == "lid" {
-			var err error
-			sender, err = b.Client.Store.LIDs.GetPNForLID(context.Background(), evt.Info.Sender)
-			if err != nil {
-				b.Client.Log.Errorf("CMD « Sum error happen bruh : ", err)
-				return
-			}
-		}
-		senderNum := sender.User
-		ownerNum := b.Config.Owner
 		if cmd.Permission == commands.Owner {
-			if senderNum != ownerNum {
-				b.Client.Log.Warnf("CMD « Permission denied for '%s' from %s", commandName, senderNum)
+			if !b.isOwner(senderNum) {
+				b.Client.Log.Warnf("CMD « Permission denied for user '%s'", senderNum)
 				return
 			}
-			if senderNum == ownerNum {
-				b.Client.Log.Infof("CMD « Permission granted for '%s' from %s", commandName, senderNum)
-			}
+			b.Client.Log.Infof("CMD « Permission granted for user '%s'", senderNum)
 		}
 	}
 
@@ -168,8 +181,11 @@ func (b *Bot) commandHandler(evt *events.Message) {
 		RawArgs: rawArgs,
 		Conf:    b.Config,
 	}
-
-	go cmd.Exec(ctx)
+	go func() {
+		b.Client.SendChatPresence(context.Background(), evt.Info.Chat, types.ChatPresenceComposing, types.ChatPresenceMediaText)
+		defer b.Client.SendChatPresence(context.Background(), evt.Info.Chat, types.ChatPresencePaused, types.ChatPresenceMediaText)
+		cmd.Exec(ctx)
+	}()
 
 	var sourceName string
 	if evt.Info.IsGroup {
