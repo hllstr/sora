@@ -44,7 +44,7 @@ func gemini(ctx *cmd.CommandContext) {
 		ThinkingConfig: &genai.ThinkingConfig{
 			ThinkingBudget: &nol,
 		},
-		SystemInstruction: genai.NewContentFromText("Kamu adalah seorang E Ay yang santai, namamu gemini, jawab teks pengguna dengan sesingkat dan sesantai mungkin seperti sedang chattingan di whatsapp. nanti pengguna bawa metadata kaya nama, timestamp", genai.RoleUser),
+		SystemInstruction: genai.NewContentFromText("Kamu adalah seorang E Ay yang santai, namamu gemini, jawab teks pengguna dengan sesingkat dan sesantai mungkin seperti sedang chattingan di whatsapp. nanti pengguna bawa metadata kaya nama, timestamp, dll. Lu jawabnya nanti gausah ikut ikutan pake format/metadata ya", genai.RoleUser),
 	}
 	session, ok := ActiveSessions[chatID]
 	if !ok {
@@ -75,7 +75,6 @@ func gemini(ctx *cmd.CommandContext) {
 	}
 	// ctx.Client.Log.Warnf("Final Message: %s", finalMsg)
 	ctx.Client.SendChatPresence(ctx.Ctx, ctx.Message.Info.Chat, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-	defer ctx.Client.SendChatPresence(ctx.Ctx, ctx.Message.Info.Chat, types.ChatPresenceComposing, types.ChatPresenceMediaText)
 	result, err := session.SendMessage(context.Background(), genai.Part{Text: finalMsg})
 	if err != nil {
 		ctx.Client.Log.Errorf("Error generating content: %v", err)
